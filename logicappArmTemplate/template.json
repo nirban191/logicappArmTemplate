@@ -1,0 +1,173 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workflows_Mapper_name": {
+            "defaultValue": "Mapper",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "[parameters('workflows_Mapper_name')]",
+            "location": "northcentralus",
+            "properties": {
+                "state": "Disabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "triggers": {
+                        "manual": {
+                            "type": "Request",
+                            "kind": "Http",
+                            "inputs": {
+                                "schema": {
+                                    "properties": {
+                                        "BasicSalary": {
+                                            "type": "integer"
+                                        },
+                                        "Bonus": {
+                                            "type": "integer"
+                                        },
+                                        "CTC": {
+                                            "type": "integer"
+                                        },
+                                        "City": {
+                                            "type": "string"
+                                        },
+                                        "Department": {
+                                            "type": "string"
+                                        },
+                                        "Designation": {
+                                            "type": "string"
+                                        },
+                                        "EmpID": {
+                                            "type": "integer"
+                                        },
+                                        "FirstName": {
+                                            "type": "string"
+                                        },
+                                        "LastName": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "actions": {
+                        "For_each": {
+                            "foreach": "@body('Parse_JSON')",
+                            "actions": {
+                                "Condition": {
+                                    "actions": {
+                                        "HTTP": {
+                                            "runAfter": {},
+                                            "type": "Http",
+                                            "inputs": {
+                                                "body": "@body('Parse_JSON')",
+                                                "method": "POST",
+                                                "uri": "https://prod-18.northcentralus.logic.azure.com:443/workflows/9287f5f8052840dc84664757e05ab2a3/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=diQmfKBC75OgvRjblGzKltMfJbHnxSgxYpE5j0U438A"
+                                            }
+                                        }
+                                    },
+                                    "runAfter": {},
+                                    "else": {
+                                        "actions": {
+                                            "HTTP_2": {
+                                                "runAfter": {},
+                                                "type": "Http",
+                                                "inputs": {
+                                                    "body": "@body('Parse_JSON')",
+                                                    "method": "POST",
+                                                    "uri": "https://prod-20.northcentralus.logic.azure.com:443/workflows/1517e94633bc4950a5fc0b615ab8059a/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=nlRqiX9Ua5aTFuHM5B4FodkUfp-twLsJTFT4Dry6coc"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "expression": {
+                                        "and": [
+                                            {
+                                                "equals": [
+                                                    "@items('For_each')['Department']",
+                                                    "ENG"
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "type": "If"
+                                }
+                            },
+                            "runAfter": {
+                                "Parse_JSON": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Foreach"
+                        },
+                        "Parse_JSON": {
+                            "runAfter": {},
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@triggerBody()",
+                                "schema": {
+                                    "items": {
+                                        "properties": {
+                                            "BasicSalary": {
+                                                "type": "integer"
+                                            },
+                                            "Bonus": {
+                                                "type": "integer"
+                                            },
+                                            "CTC": {
+                                                "type": "integer"
+                                            },
+                                            "City": {
+                                                "type": "string"
+                                            },
+                                            "Department": {
+                                                "type": "string"
+                                            },
+                                            "Designation": {
+                                                "type": "string"
+                                            },
+                                            "EmpID": {
+                                                "type": "integer"
+                                            },
+                                            "FirstName": {
+                                                "type": "string"
+                                            },
+                                            "LastName": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "required": [
+                                            "EmpID",
+                                            "FirstName",
+                                            "LastName",
+                                            "Designation",
+                                            "City",
+                                            "Department",
+                                            "BasicSalary",
+                                            "Bonus",
+                                            "CTC"
+                                        ],
+                                        "type": "object"
+                                    },
+                                    "type": "array"
+                                }
+                            }
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {}
+            }
+        }
+    ]
+}
